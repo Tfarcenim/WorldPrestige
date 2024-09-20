@@ -1,5 +1,7 @@
 package tfar.worldprestige.platform.services;
 
+import tfar.worldprestige.platform.MLConfig;
+
 public interface IPlatformHelper {
 
     /**
@@ -33,4 +35,6 @@ public interface IPlatformHelper {
 
         return isDevelopmentEnvironment() ? "development" : "production";
     }
+
+    MLConfig getConfig();
 }

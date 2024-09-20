@@ -1,11 +1,20 @@
 package tfar.worldprestige;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import tfar.worldprestige.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tfar.worldprestige.world.PrestigeData;
+
+import java.util.HashSet;
+import java.util.Set;
 
 // This class is part of the common project meaning it is shared between all supported loaders. Code written here can only
 // import and access the vanilla codebase, libraries used by vanilla, and optionally third party libraries that provide
@@ -30,5 +39,37 @@ public class WorldPrestige {
 
     public static ResourceLocation id(String path) {
         return new ResourceLocation(MOD_ID,path);
+    }
+
+    public static Set<Advancement> cachedAdvancements;
+
+    public static void loadAdvancements(MinecraftServer server) {
+        cachedAdvancements = new HashSet<>();
+        for (String s : Services.PLATFORM.getConfig().getRequiredAdvancements()) {
+            Advancement advancement = server.getAdvancements().getAdvancement(new ResourceLocation(s));
+            if (advancement != null) {
+                cachedAdvancements.add(advancement);
+            } else {
+                LOG.warn("advancement {} not found", s);
+            }
+        }
+    }
+
+    public static void checkAdvancements(ServerPlayer player) {
+        MinecraftServer server = player.server;
+        PrestigeData prestigeData = PrestigeData.getDefaultInstance(server);
+        if (prestigeData == null || !prestigeData.isBossReady()) {
+            boolean allComplete = true;
+            for (Advancement advancement : cachedAdvancements) {
+                if (!player.getAdvancements().getOrStartProgress(advancement).isDone()) {
+                    allComplete = false;
+                    break;
+                }
+            }
+            if (allComplete) {
+                PrestigeData.getOrCreateDefaultInstance(server).setBossReady();
+                player.sendSystemMessage(Component.literal("The final boss is ready to summon...").withStyle(ChatFormatting.ITALIC));
+            }
+        }
     }
 }

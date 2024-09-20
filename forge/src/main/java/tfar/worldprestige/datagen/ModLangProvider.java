@@ -10,22 +10,17 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.data.LanguageProvider;
 import org.codehaus.plexus.util.StringUtils;
-import tfar.nations3.Nations3;
-import tfar.nations3.init.ModBlocks;
-import tfar.nations3.init.ModCreativeTabs;
+import tfar.worldprestige.WorldPrestige;
 
 import java.util.function.Supplier;
 
 public class ModLangProvider extends LanguageProvider {
     public ModLangProvider(PackOutput output) {
-        super(output, Nations3.MOD_ID, "en_us");
+        super(output, WorldPrestige.MOD_ID, "en_us");
     }
 
     @Override
     protected void addTranslations() {
-        addTranslatableComponent(ModCreativeTabs.TITLE,"Nations3");
-        addDefaultBlock(() -> ModBlocks.CLAIMING_TABLE);
-        addDefaultBlock(() -> ModBlocks.DEPOSIT_STATION);
     }
 
 
