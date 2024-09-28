@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import tfar.worldprestige.network.PacketHandler;
 import tfar.worldprestige.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
@@ -26,6 +27,8 @@ public class WorldPrestige {
     public static final String MOD_NAME = "WorldPrestige";
     public static final Logger LOG = LoggerFactory.getLogger(MOD_NAME);
 
+    public static final String TRIGGERS_PRESTIGE = id("trigger_prestige").toString();
+
     // The loader specific projects are able to import and use any code from the common project. This allows you to
     // write the majority of your code here and load it from your loader specific projects. This example has some
     // code that gets invoked by the entry point of the loader specific projects.
@@ -35,6 +38,7 @@ public class WorldPrestige {
         // your own abstraction layer. You can learn more about this in our provided services class. In this example
         // we have an interface in the common code and use a loader specific implementation to delegate our call to
         // the platform specific approach.
+        PacketHandler.registerPackets();
     }
 
     public static ResourceLocation id(String path) {
@@ -69,6 +73,7 @@ public class WorldPrestige {
             if (allComplete) {
                 PrestigeData.getOrCreateDefaultInstance(server).setBossReady();
                 player.sendSystemMessage(Component.literal("The final boss is ready to summon...").withStyle(ChatFormatting.ITALIC));
+                Services.PLATFORM.postEvent(player);
             }
         }
     }

@@ -1,0 +1,9 @@
+accessWidener v1 named
+
+accessible field net/minecraft/server/MinecraftServer storageSource Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;
+accessible field net/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess levelDirectory Lnet/minecraft/world/level/storage/LevelStorageSource$LevelDirectory;
+accessible field net/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess levelId Ljava/lang/String;
+accessible field net/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess lock Lnet/minecraft/util/DirectoryLock;
+accessible field net/minecraft/world/level/storage/DimensionDataStorage cache Ljava/util/Map;
+accessible method net/minecraft/world/level/storage/DimensionDataStorage getDataFile (Ljava/lang/String;)Ljava/io/File;
+accessible method net/minecraft/world/level/storage/LevelResource <init> (Ljava/lang/String;)V

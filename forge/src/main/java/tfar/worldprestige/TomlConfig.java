@@ -47,7 +47,7 @@ public class TomlConfig implements MLConfig {
                     .defineList("required_advancements",() -> defaults, String.class::isInstance);
 
             boss_entity_type = builder.comment("Entity Type of boss")
-                            .define("boss_entity_type",() -> BuiltInRegistries.ENTITY_TYPE.getKey(EntityType.GIANT).toString(),String.class::isInstance);
+                            .define("boss_entity_type",() -> BuiltInRegistries.ENTITY_TYPE.getKey(EntityType.EVOKER).toString(),String.class::isInstance);
             builder.pop();
         }
     }

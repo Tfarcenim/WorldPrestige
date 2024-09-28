@@ -1,6 +1,12 @@
 package tfar.worldprestige.platform.services;
 
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import tfar.worldprestige.network.client.S2CModPacket;
+import tfar.worldprestige.network.server.C2SModPacket;
 import tfar.worldprestige.platform.MLConfig;
+
+import java.util.function.Function;
 
 public interface IPlatformHelper {
 
@@ -37,4 +43,10 @@ public interface IPlatformHelper {
     }
 
     MLConfig getConfig();
+    void postEvent(ServerPlayer player);
+
+    <MSG extends S2CModPacket> void registerClientPacket(Class<MSG> packetLocation, Function<FriendlyByteBuf,MSG> reader);
+    <MSG extends C2SModPacket> void registerServerPacket(Class<MSG> packetLocation, Function<FriendlyByteBuf,MSG> reader);
+    void sendToClient(S2CModPacket msg, ServerPlayer player);
+    void sendToServer(C2SModPacket msg);
 }
