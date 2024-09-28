@@ -29,6 +29,7 @@ public class PrestigeData extends SavedData {
     private boolean ready;
     private int counter;
     final ServerLevel level;
+    public boolean prepare;
 
     public PrestigeData(ServerLevel level) {
         this.level = level;
@@ -78,24 +79,7 @@ public class PrestigeData extends SavedData {
         if (server.isDedicatedServer()) {
             server.halt(false);
         }
-
-        LevelStorageSource.LevelStorageAccess dataStorage = server.storageSource;
-        LevelStorageSource.LevelDirectory levelDirectory = dataStorage.levelDirectory;
-
-        if (dataStorage != null) {
-            Iterable<ServerLevel> serverLevelList = server.getAllLevels();
-            for (ServerLevel serverLevel : serverLevelList) {
-
-            }
-        }
-
-        try {
-            deleteAlmostEverything(server,dataStorage);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        //increment();
+        prepare = true;
     }
 
     public void deleteAlmostEverything(MinecraftServer server,LevelStorageSource.LevelStorageAccess access) throws IOException {
@@ -119,7 +103,7 @@ public class PrestigeData extends SavedData {
         int $$1 = 1;
 
         while($$1 <= 5) {
-           // LevelStorageSource.LOGGER.info("Attempt {}...", $$1);
+           // LevelStorageSourceMixin.LOGGER.info("Attempt {}...", $$1);
 
             try {
                 Files.walkFileTree(access.levelDirectory.path(), new SimpleFileVisitor<>() {
@@ -154,7 +138,7 @@ public class PrestigeData extends SavedData {
                                 Files.deleteIfExists(lockFile);
                             }
 
-                            if (!Objects.equals(access.levelDirectory.path(),path)) {
+                            if (!Objects.equals(access.levelDirectory.path(),path) && !path.equals(access.levelDirectory.resourcePath(new LevelResource("data")))) {
                                 Files.delete(path);
                             }
                             return FileVisitResult.CONTINUE;
@@ -167,7 +151,7 @@ public class PrestigeData extends SavedData {
                     throw var6;
                 }
 
-               // LevelStorageSource.LOGGER.warn("Failed to delete {}", this.levelDirectory.path(), var6);
+               // LevelStorageSourceMixin.LOGGER.warn("Failed to delete {}", this.levelDirectory.path(), var6);
 
                 try {
                     Thread.sleep(500L);

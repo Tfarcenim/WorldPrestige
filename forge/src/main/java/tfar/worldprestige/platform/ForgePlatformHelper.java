@@ -1,8 +1,10 @@
 package tfar.worldprestige.platform;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import tfar.worldprestige.BossPrestigeEvent;
 import tfar.worldprestige.PacketHandlerForge;
 import tfar.worldprestige.TomlConfig;
@@ -67,5 +69,10 @@ public class ForgePlatformHelper implements IPlatformHelper {
     @Override
     public void postEvent(ServerPlayer player) {
         MinecraftForge.EVENT_BUS.post(new BossPrestigeEvent(player));
+    }
+
+    @Override
+    public MinecraftServer getServer() {
+        return ServerLifecycleHooks.getCurrentServer();
     }
 }

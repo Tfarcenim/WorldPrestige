@@ -2,6 +2,8 @@ package tfar.worldprestige;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.Advancement;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import tfar.worldprestige.world.PrestigeData;
 
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 // This class is part of the common project meaning it is shared between all supported loaders. Code written here can only
@@ -77,4 +80,42 @@ public class WorldPrestige {
             }
         }
     }
+
+    //        nbt.putInt("SpawnX", this.xSpawn);
+    //        nbt.putInt("SpawnY", this.ySpawn);
+    //        nbt.putInt("SpawnZ", this.zSpawn);
+
+    public static void modifyData(CompoundTag tag) {
+        if (tag != null) {
+            MinecraftServer server = Services.PLATFORM.getServer();
+            if (server != null) {
+                PrestigeData prestigeData = PrestigeData.getDefaultInstance(server);
+                if (prestigeData != null && prestigeData.prepare) {
+                    Set<String> toRemove = remove();
+                    for (String s : toRemove) {
+                        tag.remove(s);
+                    }
+                    BlockPos newSpawn =createNewSpawn(tag.getInt("SpawnX"),tag.getInt("SpawnY"),tag.getInt("SpawnZ"));
+                    tag.putInt("SpawnX",newSpawn.getX());
+                    tag.putInt("SpawnY",newSpawn.getY());
+                    tag.putInt("SpawnZ",newSpawn.getZ());
+                }
+            }
+        }
+    }
+
+    public static Set<String> remove() {
+        Set<String> strings = new HashSet<>();
+        strings.add("Player");
+        return strings;
+    }
+
+    public static BlockPos createNewSpawn(int x,int y,int z) {
+        Random random = new Random();
+        int r = 100000;
+        int newX = random.nextInt(2 * r) - r + x;
+        int newZ = random.nextInt(2 * r) - r + z;
+        return new BlockPos(newX,y,newZ);
+    }
+
 }

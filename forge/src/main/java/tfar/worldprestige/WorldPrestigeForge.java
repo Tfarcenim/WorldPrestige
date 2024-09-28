@@ -27,6 +27,8 @@ import tfar.worldprestige.network.client.S2CPrestigeScreenPacket;
 import tfar.worldprestige.platform.Services;
 import tfar.worldprestige.world.PrestigeData;
 
+import java.io.IOException;
+
 @Mod(WorldPrestige.MOD_ID)
 public class WorldPrestigeForge {
     
@@ -97,7 +99,13 @@ public class WorldPrestigeForge {
     void stopServer(ServerStoppedEvent event) {
         MinecraftServer server = event.getServer();
         PrestigeData prestigeData = PrestigeData.getOrCreateDefaultInstance(server);
-        prestigeData.activate();
+        if (prestigeData.prepare) {
+            try {
+                prestigeData.deleteAlmostEverything(server, server.storageSource);
+            } catch (IOException e) {
+               // throw new RuntimeException(e);
+            }
+        }
     }
 
     void checkAdvancements(AdvancementEvent.AdvancementEarnEvent event) {

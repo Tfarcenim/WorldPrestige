@@ -24,7 +24,7 @@ public class C2SSelectPrestigePowerPacket implements C2SModPacket {
         PrestigeData data = PrestigeData.getDefaultInstance(server);
         if (data != null) {
             if (data.isReady()) {
-               // data.activate();
+                data.activate();
             } else {
                 WorldPrestige.LOG.warn("Unexpected prestige power packet from {}",player.getGameProfile().getName());
             }
