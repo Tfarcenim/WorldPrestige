@@ -80,17 +80,17 @@ public class PrestigeData extends SavedData {
             server.halt(false);
         }
         prepare = true;
+        counter++;
     }
 
     public void deleteAlmostEverything(MinecraftServer server,LevelStorageSource.LevelStorageAccess access) throws IOException {
       //  access.checkLock();
         DimensionDataStorage dimensionDataStorage = server.overworld().getDataStorage();
-        File prestigeFile = null;
         String name = null;
         for (Map.Entry<String,SavedData> dataEntry : dimensionDataStorage.cache.entrySet()) {
             String string = dataEntry.getKey();
             if (dataEntry.getValue() == this) {
-                prestigeFile = dimensionDataStorage.getDataFile(string);
+                dimensionDataStorage.getDataFile(string);
                 name = string;
             }
         }
