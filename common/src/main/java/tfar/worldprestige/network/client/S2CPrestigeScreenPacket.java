@@ -5,10 +5,14 @@ import tfar.worldprestige.client.ClientPacketHandler;
 
 public class S2CPrestigeScreenPacket implements S2CModPacket {
 
-    public S2CPrestigeScreenPacket() {
+    public final int counter;
+
+    public S2CPrestigeScreenPacket(int counter) {
+        this.counter = counter;
     }
 
     public S2CPrestigeScreenPacket(FriendlyByteBuf buf) {
+        counter = buf.readInt();
     }
 
     @Override
@@ -18,5 +22,6 @@ public class S2CPrestigeScreenPacket implements S2CModPacket {
 
     @Override
     public void write(FriendlyByteBuf to) {
+        to.writeInt(counter);
     }
 }

@@ -7,6 +7,6 @@ import tfar.worldprestige.network.client.S2CPrestigeScreenPacket;
 
 public class ClientPacketHandler {
     public static void handlePrestigeScreenPacket(S2CPrestigeScreenPacket s2CPrestigeScreenPacket) {
-        Minecraft.getInstance().setScreen(new PrestigeScreen(Component.literal("Choose Prestige Power")));
+        Minecraft.getInstance().setScreen(new PrestigeScreen(Component.literal("Choose Prestige Power - "+"Prestige "+s2CPrestigeScreenPacket.counter)));
     }
 }

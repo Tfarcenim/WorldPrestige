@@ -68,7 +68,7 @@ public class WorldPrestigeForge {
                 prestigeData.setFightActive(false);
                 LivingEntity killCredit = targetMob.getKillCredit();
                 if (killCredit instanceof ServerPlayer player) {
-                    Services.PLATFORM.sendToClient(new S2CPrestigeScreenPacket(),player);
+                    Services.PLATFORM.sendToClient(new S2CPrestigeScreenPacket(prestigeData.counter),player);
                 }
             }
         }

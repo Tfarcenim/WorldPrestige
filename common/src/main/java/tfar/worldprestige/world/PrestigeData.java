@@ -27,7 +27,7 @@ public class PrestigeData extends SavedData {
     private boolean bossReady;
     private boolean fightActive;
     private boolean ready;
-    private int counter;
+    public int counter;
     final ServerLevel level;
     public boolean prepare;
 

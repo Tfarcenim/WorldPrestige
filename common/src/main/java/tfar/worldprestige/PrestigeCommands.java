@@ -51,7 +51,7 @@ public class PrestigeCommands {
         PrestigeData prestigeData = PrestigeData.getOrCreateDefaultInstance(server);
         prestigeData.setReady(true);
         prestigeData.setFightActive(false);
-        Services.PLATFORM.sendToClient(new S2CPrestigeScreenPacket(), player);
+        Services.PLATFORM.sendToClient(new S2CPrestigeScreenPacket(prestigeData.counter), player);
         return 1;
     }
 }
