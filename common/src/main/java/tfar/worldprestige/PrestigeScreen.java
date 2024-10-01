@@ -8,11 +8,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import tfar.worldprestige.network.server.C2SSelectPrestigePowerPacket;
 import tfar.worldprestige.platform.Services;
+import tfar.worldprestige.world.PrestigePower;
+import tfar.worldprestige.world.PrestigePowers;
 
 public class PrestigeScreen extends Screen {
 
     private static final ResourceLocation BACKGROUND_LOCATION = new ResourceLocation("textures/gui/demo_background.png");
 
+    private String id;
 
     public PrestigeScreen(Component $$0) {
         super($$0);
@@ -21,9 +24,20 @@ public class PrestigeScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+
+        int y = 0;
+        for (PrestigePower power : PrestigePowers.powers.values()) {
+            addRenderableWidget(Button.builder(Component.translatable(power.getId()),button -> {
+               id = power.getId();
+            }).size(100,20).pos(width/2-50,height/2 - 40 + y).build());
+            y += 24;
+        }
+
         addRenderableWidget(Button.builder(CommonComponents.GUI_DONE,button -> {
-            Services.PLATFORM.sendToServer(new C2SSelectPrestigePowerPacket(0));
-        }).size(100,20).pos(width/2-50,height/2 +40).build());
+            if (id != null) {
+                Services.PLATFORM.sendToServer(new C2SSelectPrestigePowerPacket(id));
+            }
+        }).size(100,20).pos(width/2-50,height/2 +60).build());
     }
 
     @Override
@@ -46,6 +60,11 @@ public class PrestigeScreen extends Screen {
         int i = (this.width - 248) / 2 + 10;
         int j = (this.height - 166) / 2 + 8;
         pGuiGraphics.drawString(this.font, this.title, i, j, 0x1f1f1f, false);
+
+        if (id != null) {
+            pGuiGraphics.drawString(this.font,id,115 + i - font.width(id) / 2,j + 15,0x1f1f1f,false);
+        }
+
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
     }
 

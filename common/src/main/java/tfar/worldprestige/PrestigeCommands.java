@@ -27,6 +27,10 @@ public class PrestigeCommands {
                         .requires(commandSourceStack -> commandSourceStack.hasPermission(Commands.LEVEL_ADMINS))
                         .executes(PrestigeCommands::activatePrestige)
                 )
+                .then(Commands.literal("reset_prestige_powers")
+                        .requires(commandSourceStack -> commandSourceStack.hasPermission(Commands.LEVEL_ADMINS))
+                        .executes(PrestigeCommands::resetPrestigePowers)
+                )
         );
     }
 
@@ -52,6 +56,14 @@ public class PrestigeCommands {
         prestigeData.setReady(true);
         prestigeData.setFightActive(false);
         Services.PLATFORM.sendToClient(new S2CPrestigeScreenPacket(prestigeData.counter), player);
+        return 1;
+    }
+
+    static int resetPrestigePowers(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        CommandSourceStack source = ctx.getSource();
+        MinecraftServer server = source.getServer();
+        PrestigeData prestigeData = PrestigeData.getOrCreateDefaultInstance(server);
+        prestigeData.resetPowers();
         return 1;
     }
 }

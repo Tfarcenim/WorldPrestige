@@ -1,14 +1,21 @@
 package tfar.worldprestige.world;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntArrayTag;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import org.apache.commons.compress.harmony.unpack200.bytecode.forms.ThisFieldRefForm;
+import org.apache.logging.log4j.core.jmx.Server;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.struct.InjectorGroupInfo;
 import tfar.worldprestige.WorldPrestige;
@@ -17,10 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class PrestigeData extends SavedData {
 
@@ -31,6 +35,8 @@ public class PrestigeData extends SavedData {
     final ServerLevel level;
     public boolean prepare;
 
+    private final Object2IntMap<PrestigePower> powers = new Object2IntOpenHashMap<>();
+
     public PrestigeData(ServerLevel level) {
         this.level = level;
     }
@@ -39,6 +45,12 @@ public class PrestigeData extends SavedData {
     public static PrestigeData getInstance(ServerLevel serverLevel) {
         return serverLevel.getDataStorage()
                 .get(compoundTag -> loadStatic(compoundTag, serverLevel), name(serverLevel));
+    }
+
+    public void applyPowers(ServerPlayer newPlayer) {
+        for (Object2IntMap.Entry<PrestigePower> entry : powers.object2IntEntrySet()) {
+            entry.getKey().apply(newPlayer,entry.getIntValue());
+        }
     }
 
     public void setBossReady() {
@@ -63,24 +75,34 @@ public class PrestigeData extends SavedData {
         setDirty();
     }
 
+    public boolean isFightActive() {
+        return fightActive;
+    }
+
     public void setFightActive(boolean active) {
         this.fightActive = active;
         setDirty();
     }
 
-    public void increment() {
-        counter++;
-        setDirty();
-    }
-
-    public void activate() {
+    public void activate(PrestigePower power) {
         MinecraftServer server = level.getServer();
+
+        addOrIncrement(power);
+
         server.getPlayerList().getPlayers().forEach(player -> player.connection.disconnect(Component.literal("Starting Prestige "+counter)));
         if (server.isDedicatedServer()) {
             server.halt(false);
         }
         prepare = true;
         counter++;
+    }
+
+    public void addOrIncrement(PrestigePower power) {
+        if (powers.containsKey(power)) {
+            powers.put(power,1);
+        } else {
+            powers.put(power,powers.getInt(power) +1);
+        }
     }
 
     public void deleteAlmostEverything(MinecraftServer server,LevelStorageSource.LevelStorageAccess access) throws IOException {
@@ -198,6 +220,13 @@ public class PrestigeData extends SavedData {
         compoundTag.putBoolean("fight_active",fightActive);
         compoundTag.putBoolean("ready",ready);
         compoundTag.putInt("counter",counter);
+
+        CompoundTag listTag = new CompoundTag();
+        for (Object2IntMap.Entry<PrestigePower> entry : powers.object2IntEntrySet()) {
+            listTag.putInt(entry.getKey().getId(),entry.getIntValue());
+        }
+        compoundTag.put("powers",listTag);
+
         return compoundTag;
     }
 
@@ -206,5 +235,19 @@ public class PrestigeData extends SavedData {
         fightActive = tag.getBoolean("fight_active");
         ready = tag.getBoolean("ready");
         counter = tag.getInt("counter");
+        CompoundTag compoundTag = tag.getCompound("powers");
+        for (String s :compoundTag.getAllKeys()) {
+            powers.put(PrestigePowers.powers.get(s),compoundTag.getInt(s));
+        }
+    }
+
+    public void resetPowers() {
+        powers.forEach((power, integer) -> {
+            for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
+                power.remove(player);
+            }
+        });
+        powers.clear();
+        setDirty();
     }
 }
