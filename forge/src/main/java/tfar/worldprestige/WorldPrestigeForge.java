@@ -3,7 +3,6 @@ package tfar.worldprestige;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,6 +20,7 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.MobSpawnEvent;
 import net.minecraftforge.event.entity.player.AdvancementEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -57,10 +57,14 @@ public class WorldPrestigeForge {
         MinecraftForge.EVENT_BUS.addListener(this::onPlayerClone);
         MinecraftForge.EVENT_BUS.addListener(this::onPlayerLogin);
         MinecraftForge.EVENT_BUS.addListener(this::breakspeed);
+        MinecraftForge.EVENT_BUS.addListener(this::onRightClick);
 
         if (Services.PLATFORM.isDevelopmentEnvironment()) {
             MinecraftForge.EVENT_BUS.addListener(this::addExampleSummon);
         }
+
+        MinecraftForge.EVENT_BUS.addListener(this::addDefaultSummon);
+
 
         // Use Forge to bootstrap the Common mod.
         WorldPrestige.init();
@@ -74,23 +78,37 @@ public class WorldPrestigeForge {
         PrestigeCommands.register(event.getDispatcher());
     }
 
+    void onRightClick(PlayerInteractEvent.RightClickItem event) {
+        ItemStack stack = event.getItemStack();
+        Player player = event.getEntity();
+        if (stack.hasTag() && stack.getTag().contains("summon")) {
+            if (!player.level().isClientSide) {
+                Compat.summonBoss(player);
+                stack.shrink(1);
+            }
+        }
+    }
+
+    //called clientside
     void onDeath(LivingDeathEvent event) {
         LivingEntity target = event.getEntity();
-        PrestigeData prestigeData = PrestigeData.getOrCreateDefaultInstance(target.getServer());
-        if (target instanceof Mob targetMob) {
-            if (((MobDuck)targetMob).triggersPrestige()) {
-                prestigeData.setReady(true);
-                prestigeData.setFightActive(false);
-                LivingEntity killCredit = targetMob.getKillCredit();
-                if (killCredit instanceof ServerPlayer player) {
-                    Services.PLATFORM.sendToClient(new S2CPrestigeScreenPacket(prestigeData.counter),player);
+        if (!target.level().isClientSide) {
+            PrestigeData prestigeData = PrestigeData.getOrCreateDefaultInstance(target.getServer());
+            if (target instanceof Mob targetMob) {
+                if (((MobDuck) targetMob).triggersPrestige()) {
+                    prestigeData.setReady(true);
+                    prestigeData.setFightActive(false);
+                    LivingEntity killCredit = targetMob.getKillCredit();
+                    if (killCredit instanceof ServerPlayer player) {
+                        Services.PLATFORM.sendToClient(new S2CPrestigeScreenPacket(prestigeData.counter), player);
+                    }
                 }
-            }
-        } else if (target instanceof ServerPlayer player) {
-            if (prestigeData.isFightActive()) {
-                ServerLevel serverLevel = player.serverLevel();
-                serverLevel.setDayTime(skipToMidnight(serverLevel.getDayTime()));
-                serverLevel.getServer().getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(false,serverLevel.getServer());
+            } else if (target instanceof ServerPlayer player) {
+                if (prestigeData.isFightActive()) {
+                    ServerLevel serverLevel = player.serverLevel();
+                    serverLevel.setDayTime(skipToMidnight(serverLevel.getDayTime()));
+                    serverLevel.getServer().getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(false, serverLevel.getServer());
+                }
             }
         }
     }
@@ -127,8 +145,6 @@ public class WorldPrestigeForge {
         MinecraftServer server = event.getEntity().getServer();
         PrestigeData prestigeData = PrestigeData.getDefaultInstance(server);
         if (prestigeData != null && prestigeData.isBossReady()) {
-            ResourceLocation id = new ResourceLocation(Services.PLATFORM.getConfig().getBossEntityType());
-            EntityType<?> type = event.getEntity().getType();
             if (((MobDuck) mob).triggersPrestige() && prestigeData.isBossReady()) {
                 server.getPlayerList().broadcastSystemMessage(Component.literal("The final fight has begun"),true);
                 prestigeData.setFightActive(true);
@@ -142,6 +158,12 @@ public class WorldPrestigeForge {
         entityTag.putBoolean(WorldPrestige.TRIGGERS_PRESTIGE,true);
         stack.getOrCreateTag().put(EntityType.ENTITY_TAG,entityTag);
         event.getEntity().addItem(stack);
+    }
+
+    void addDefaultSummon(BossPrestigeEvent event) {
+        if (Services.PLATFORM.getConfig().useDefaultPrestige()) {
+            Compat.spawnBoss(event.getEntity());
+        }
     }
 
     void stopServer(ServerStoppedEvent event) {

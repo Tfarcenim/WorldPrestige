@@ -79,6 +79,13 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     compileOnly project(":common")
     annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT:processor")
+    implementation fg.deobf("curse.maven:bosses-of-mass-destruction-forge-941573:5067728")
+
+    implementation fg.deobf("software.bernie.geckolib:geckolib-forge-$minecraft_version:$geckolib")
+
+    implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:$cloth_config")
+    implementation fg.deobf("curse.maven:cerbons-api-955605:5050080")
+
 }
 
 tasks.withType(JavaCompile).configureEach {
