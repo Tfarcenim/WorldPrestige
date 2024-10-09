@@ -10,8 +10,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import tfar.worldprestige.network.PacketHandler;
 import tfar.worldprestige.platform.Services;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.item.Items;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tfar.worldprestige.world.PrestigeData;
@@ -90,7 +88,7 @@ public class WorldPrestige {
             MinecraftServer server = Services.PLATFORM.getServer();
             if (server != null) {
                 PrestigeData prestigeData = PrestigeData.getDefaultInstance(server);
-                if (prestigeData != null && prestigeData.prepare) {
+                if (prestigeData != null && prestigeData.deleteEverything) {
                     Set<String> toRemove = remove();
                     for (String s : toRemove) {
                         tag.remove(s);

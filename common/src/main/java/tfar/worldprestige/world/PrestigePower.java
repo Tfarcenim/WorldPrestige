@@ -1,5 +1,7 @@
 package tfar.worldprestige.world;
 
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
 
 public abstract class PrestigePower {
@@ -23,5 +25,9 @@ public abstract class PrestigePower {
 
     public String getId() {
         return id;
+    }
+
+    public MutableComponent translationKey() {
+        return Component.translatable("worldprestige.prestige_power."+id);
     }
 }

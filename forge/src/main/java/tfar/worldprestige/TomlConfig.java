@@ -33,9 +33,15 @@ public class TomlConfig implements MLConfig {
         return Server.use_default_prestige.get();
     }
 
+    @Override
+    public boolean deleteWorldOnFailure() {
+        return Server.wipe_world_on_failure.get();
+    }
+
     public static class Server {
         public static ForgeConfigSpec.ConfigValue<List<? extends String>> required_advancements;
         public static ForgeConfigSpec.BooleanValue use_default_prestige;
+        public static ForgeConfigSpec.BooleanValue wipe_world_on_failure;
 
         public Server(ForgeConfigSpec.Builder builder) {
             builder.push("general");
@@ -45,6 +51,9 @@ public class TomlConfig implements MLConfig {
 
             use_default_prestige = builder.comment("Use the default method of prestiging a world, disable if making custom modpack")
                             .define("use_default_prestige",true);
+
+            wipe_world_on_failure = builder.comment("Wipe the world if the player dies after summoning the final boss")
+                    .define("wipe_world_on_failure",true);
             builder.pop();
         }
     }

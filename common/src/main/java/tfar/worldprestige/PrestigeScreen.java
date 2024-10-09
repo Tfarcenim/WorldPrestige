@@ -27,17 +27,17 @@ public class PrestigeScreen extends Screen {
 
         int y = 0;
         for (PrestigePower power : PrestigePowers.powers.values()) {
-            addRenderableWidget(Button.builder(Component.translatable(power.getId()),button -> {
+            addRenderableWidget(Button.builder(power.translationKey(),button -> {
                id = power.getId();
-            }).size(100,20).pos(width/2-50,height/2 - 40 + y).build());
-            y += 24;
+            }).size(110,18).pos(width/2-50,height/2 - 35 + y).build());
+            y += 22;
         }
 
         addRenderableWidget(Button.builder(CommonComponents.GUI_DONE,button -> {
             if (id != null) {
                 Services.PLATFORM.sendToServer(new C2SSelectPrestigePowerPacket(id));
             }
-        }).size(100,20).pos(width/2-50,height/2 +60).build());
+        }).size(110,20).pos(width/2-50,height/2 +55).build());
     }
 
     @Override
@@ -61,8 +61,12 @@ public class PrestigeScreen extends Screen {
         int j = (this.height - 166) / 2 + 8;
         pGuiGraphics.drawString(this.font, this.title, i, j, 0x1f1f1f, false);
 
+        String warning = "World will be reset after pressing Done";
+        pGuiGraphics.drawString(this.font,warning,i+20,j+30,0xff0000,false);
+
         if (id != null) {
-            pGuiGraphics.drawString(this.font,id,115 + i - font.width(id) / 2,j + 15,0x1f1f1f,false);
+            Component component = Component.empty().append("Selected Power: ").append(PrestigePowers.powers.get(id).translationKey());
+            pGuiGraphics.drawString(this.font,component,115 + i - font.width(component) / 2,j + 15,0x1f1f1f,false);
         }
 
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);

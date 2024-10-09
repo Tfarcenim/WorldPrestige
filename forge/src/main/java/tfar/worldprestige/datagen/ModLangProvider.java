@@ -11,6 +11,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.data.LanguageProvider;
 import org.codehaus.plexus.util.StringUtils;
 import tfar.worldprestige.WorldPrestige;
+import tfar.worldprestige.world.PrestigePower;
+import tfar.worldprestige.world.PrestigePowers;
 
 import java.util.function.Supplier;
 
@@ -21,6 +23,11 @@ public class ModLangProvider extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
+        addPower(PrestigePowers.ARMOR,"+2 Armor");
+        addPower(PrestigePowers.DIG_SPEED,"+1 Dig Speed");
+        addPower(PrestigePowers.HEALTH,"+2 Health");
+        addPower(PrestigePowers.SPEED,"x1.1 Movement Speed");
+
     }
 
 
@@ -38,6 +45,10 @@ public class ModLangProvider extends LanguageProvider {
 
     protected void addDefaultEntityType(Supplier<EntityType<?>> supplier) {
         addEntityType(supplier,getNameFromEntity(supplier.get()));
+    }
+
+    protected void addPower(PrestigePower power, String name) {
+        addTranslatableComponent(power.translationKey(),name);
     }
 
     public static String getNameFromItem(Item item) {

@@ -16,6 +16,7 @@ import net.minecraft.world.level.GameRules;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.MobSpawnEvent;
 import net.minecraftforge.event.entity.player.AdvancementEvent;
@@ -58,7 +59,7 @@ public class WorldPrestigeForge {
         MinecraftForge.EVENT_BUS.addListener(this::onPlayerLogin);
         MinecraftForge.EVENT_BUS.addListener(this::breakspeed);
         MinecraftForge.EVENT_BUS.addListener(this::onRightClick);
-
+        MinecraftForge.EVENT_BUS.addListener(this::tick);
         if (Services.PLATFORM.isDevelopmentEnvironment()) {
             MinecraftForge.EVENT_BUS.addListener(this::addExampleSummon);
         }
@@ -72,6 +73,16 @@ public class WorldPrestigeForge {
 
     void register(RegisterEvent event) {
         event.register(Registries.ATTRIBUTE,WorldPrestige.id("dig_speed"),() -> ModAttributes.DIG_SPEED);
+    }
+
+    void tick(TickEvent.ServerTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) {
+            MinecraftServer server = event.getServer();
+            PrestigeData data = PrestigeData.getDefaultInstance(server);
+            if (data != null) {
+                data.tick();
+            }
+        }
     }
 
     void registerCommands(RegisterCommandsEvent event) {
@@ -105,9 +116,11 @@ public class WorldPrestigeForge {
                 }
             } else if (target instanceof ServerPlayer player) {
                 if (prestigeData.isFightActive()) {
-                    ServerLevel serverLevel = player.serverLevel();
-                    serverLevel.setDayTime(skipToMidnight(serverLevel.getDayTime()));
-                    serverLevel.getServer().getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(false, serverLevel.getServer());
+
+                    prestigeData.onFailure();
+
+                 //   serverLevel.setDayTime(skipToMidnight(serverLevel.getDayTime()));
+                  //  serverLevel.getServer().getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(false, serverLevel.getServer());
                 }
             }
         }
@@ -145,8 +158,10 @@ public class WorldPrestigeForge {
         MinecraftServer server = event.getEntity().getServer();
         PrestigeData prestigeData = PrestigeData.getDefaultInstance(server);
         if (prestigeData != null && prestigeData.isBossReady()) {
-            if (((MobDuck) mob).triggersPrestige() && prestigeData.isBossReady()) {
-                server.getPlayerList().broadcastSystemMessage(Component.literal("The final fight has begun"),true);
+            CompoundTag compoundTag = event.getSpawnTag();
+            if (compoundTag.contains(WorldPrestige.TRIGGERS_PRESTIGE)) {
+                ((MobDuck)mob).setTriggersPrestige(true);
+                server.getPlayerList().broadcastSystemMessage(Component.literal("The final fight has begun"), true);
                 prestigeData.setFightActive(true);
             }
         }
@@ -169,7 +184,7 @@ public class WorldPrestigeForge {
     void stopServer(ServerStoppedEvent event) {
         MinecraftServer server = event.getServer();
         PrestigeData prestigeData = PrestigeData.getOrCreateDefaultInstance(server);
-        if (prestigeData.prepare) {
+        if (prestigeData.deleteEverything) {
             try {
                 prestigeData.deleteAlmostEverything(server, server.storageSource);
             } catch (IOException e) {

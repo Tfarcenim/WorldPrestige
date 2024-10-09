@@ -3,9 +3,6 @@ package tfar.worldprestige.world;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntArrayTag;
-import net.minecraft.nbt.IntTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -14,11 +11,9 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.LevelStorageSource;
-import org.apache.commons.compress.harmony.unpack200.bytecode.forms.ThisFieldRefForm;
-import org.apache.logging.log4j.core.jmx.Server;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.injection.struct.InjectorGroupInfo;
 import tfar.worldprestige.WorldPrestige;
+import tfar.worldprestige.platform.Services;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +28,9 @@ public class PrestigeData extends SavedData {
     private boolean ready;
     public int counter;
     final ServerLevel level;
-    public boolean prepare;
+    public boolean deleteEverything;
+
+    public long startTime;
 
     private final Object2IntMap<PrestigePower> powers = new Object2IntOpenHashMap<>();
 
@@ -81,6 +78,9 @@ public class PrestigeData extends SavedData {
 
     public void setFightActive(boolean active) {
         this.fightActive = active;
+        if (active) {
+            startTime = level.getGameTime();
+        }
         setDirty();
     }
 
@@ -93,8 +93,28 @@ public class PrestigeData extends SavedData {
         if (server.isDedicatedServer()) {
             server.halt(false);
         }
-        prepare = true;
+        deleteEverything = true;
         counter++;
+    }
+
+
+    public void tick() {
+        long currentTime = level.getGameTime();
+        if (isFightActive() && currentTime - startTime > 20 * 60 * 30) {
+            onFailure();
+        }
+    }
+
+    public void onFailure() {
+        if (Services.PLATFORM.getConfig().deleteWorldOnFailure()) {
+            MinecraftServer server = level.getServer();
+
+            server.getPlayerList().getPlayers().forEach(player -> player.connection.disconnect(Component.literal("Resetting World due to failure")));
+            if (server.isDedicatedServer()) {
+                server.halt(false);
+            }
+            deleteEverything = true;
+        }
     }
 
     public void addOrIncrement(PrestigePower power) {
